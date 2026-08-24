@@ -559,47 +559,39 @@ function createApp(options) {
       return;
     }
 
-    // ── SMS SOS (Twilio Webhook) ──────────────────────────────────────────
+    // ── SMS SOS (httpSMS Webhook) ─────────────────────────────────────────
     if (urlPath === '/api/sms/sos') {
       if (req.method !== 'POST') return jsonError(res, 405, 'Method Not Allowed');
       if (!rateLimiter.check('sos:' + clientIP, 10, 60000)) {
-        res.writeHead(429, { 'Content-Type': 'text/xml' });
-        return res.end('<Response></Response>');
+        return jsonError(res, 429, 'Too Many Requests');
       }
-      var twilioSig = req.headers['x-twilio-signature'];
-      if (!twilioSig || !(req.headers['content-type'] || '').includes('application/x-www-form-urlencoded')) {
-        res.writeHead(401); return res.end();
-      }
-      if (!twilioAuthToken) {
-        res.writeHead(503); return res.end();
-      }
+      
       getBody(req, function(body, err) {
-        if (err || !body || typeof body.keys !== 'function') {
-          res.writeHead(400); return res.end();
-        }
-        // Build Twilio signature string
-        var reqUrl = (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host + req.url;
-        var sigStr = reqUrl;
-        var keys = Array.from(body.keys()).sort();
-        for (var i = 0; i < keys.length; i++) {
-          sigStr += keys[i] + body.get(keys[i]);
-        }
-        var expected = crypto.createHmac('sha1', twilioAuthToken).update(sigStr).digest('base64');
-        if (twilioSig !== expected) {
-          res.writeHead(403); return res.end();
+        if (err || !body) return jsonError(res, 400, 'Bad Request');
+        
+        let jsonBody;
+        try {
+          // Fallback if body is already parsed by a previous layer (though getBody returns raw string/buffer for API)
+          jsonBody = typeof body === 'string' ? JSON.parse(body) : body;
+        } catch (e) {
+          return jsonError(res, 400, 'Invalid JSON');
         }
 
-        var from = body.get('From');
-        var text = body.get('Body');
+        // httpSMS sends CloudEvents format
+        if (jsonBody.type !== 'message.phone.received' || !jsonBody.data) {
+          return jsonOk(res, { ignored: true });
+        }
+
+        var from = jsonBody.data.contact;
+        var text = jsonBody.data.content;
+        
         if (!from || !text || typeof from !== 'string') {
-          res.writeHead(200, { 'Content-Type': 'text/xml' });
-          return res.end('<Response></Response>');
+          return jsonError(res, 400, 'Missing contact or content');
         }
 
         // Validate phone number format
         if (!E164_RE.test(from)) {
-          res.writeHead(200, { 'Content-Type': 'text/xml' });
-          return res.end('<Response></Response>');
+          return jsonError(res, 400, 'Invalid phone number format');
         }
 
         var sMatch = text.match(/STATUS:([A-Z]+)/);
@@ -619,8 +611,7 @@ function createApp(options) {
             saveDB();
           }
         }
-        res.writeHead(200, { 'Content-Type': 'text/xml' });
-        res.end('<Response></Response>');
+        return jsonOk(res, { success: true });
       });
       return;
     }
