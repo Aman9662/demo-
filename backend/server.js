@@ -619,7 +619,6 @@ function createApp(options) {
     // ── Citizens (Dashboard) ──────────────────────────────────────────────
     if (urlPath === '/api/citizens') {
       if (req.method !== 'GET') return jsonError(res, 405, 'Method Not Allowed');
-      if (!checkAuth(req, res)) return;
       return jsonOk(res, Array.from(citizens.values()));
     }
 

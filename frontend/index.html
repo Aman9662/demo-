@@ -885,14 +885,7 @@
 
     async function fetchCitizens() {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/citizens`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        });
-        if (res.status === 401) {
-          // Token invalid or missing, redirect to home
-          window.location.href = 'home.html';
-          return;
-        }
+        const res = await fetch(`${BACKEND_URL}/api/citizens`);
         if (!res.ok) throw new Error('Dashboard fetch failed');
         const citizens = await res.json();
 
