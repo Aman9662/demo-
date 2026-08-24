@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChetnaSync - Home</title>
+  
+  <style>
+    /* ── Light Golden Designer Theme ───────────────────────────────────────── */
+    :root {
+      --clr-bg:       #FCF9F2; /* Pale Golden Cream */
+      --clr-surface:  #FFFFFF; /* Clean White */
+      --clr-card:     #FFFFFF; /* White Card */
+      --clr-accent:   #B8860B; /* Deep Designer Gold */
+      --clr-accent-dim: rgba(184, 134, 11, 0.12);
+      --clr-text:     #2D2824; /* Warm Charcoal */
+      --clr-muted:    #8A837D; /* Soft Taupe */
+      
+      --radius:       24px;
+      --radius-sm:    12px;
+      --shadow:       0 12px 40px rgba(0, 0, 0, 0.05);
+      --transition:   0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background-color: var(--clr-bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(184, 134, 11, 0.03), transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(184, 134, 11, 0.04), transparent 50%);
+      color: var(--clr-text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Designer Italic Headings */
+    h1, h2, h3, .logo {
+      font-family: 'Georgia', 'Playfair Display', 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    /* ── Navigation & Language Picker ──────────────────────────────────────── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 5%;
+      background: rgba(252, 249, 242, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--clr-accent-dim);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--clr-accent);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      color: var(--clr-text);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--clr-accent); }
+
+    .lang-picker { position: relative; }
+    .lang-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius-sm);
+      color: var(--clr-text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .lang-btn:hover { background: rgba(212, 175, 55, 0.1); border-color: var(--clr-accent); }
+    .lang-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 140px;
+    }
+    .lang-dropdown.open { display: block; animation: fadeIn 0.2s ease; }
+    .lang-option {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      color: var(--clr-text);
+      font-size: 0.9rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .lang-option:hover { background: rgba(255,255,255,0.05); }
+    .lang-option.active { background: var(--clr-accent); color: var(--clr-bg); font-weight: bold; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Hero Section (Two Portals) ────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .hero h1 {
+      font-size: 3.2rem;
+      line-height: 1.2;
+      margin-bottom: 24px;
+      color: var(--clr-text);
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--clr-muted);
+      margin-bottom: 50px;
+      max-width: 700px;
+      margin-left: auto; margin-right: auto;
+    }
+
+    .portals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    .portal-card {
+      background: var(--clr-surface);
+      border: 1px solid rgba(184, 134, 11, 0.1);
+      border-radius: var(--radius);
+      padding: 40px 30px;
+      text-align: center;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+    }
+    .portal-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(184, 134, 11, 0.08);
+      border-color: var(--clr-accent-dim);
+    }
+    .portal-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; 
+      background: linear-gradient(90deg, var(--clr-accent), transparent);
+    }
+
+    .portal-icon { font-size: 3rem; margin-bottom: 20px; text-shadow: 0 4px 12px rgba(184, 134, 11, 0.1); }
+    .portal-card h2 { color: var(--clr-text); margin-bottom: 12px; font-size: 1.8rem; }
+    .portal-card p { color: var(--clr-muted); font-size: 0.95rem; margin-bottom: 30px; min-height: 50px; font-family: 'Segoe UI', sans-serif; font-style: normal; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 14px 28px;
+      border-radius: 30px; /* Pill shape for designer look */
+      font-size: 1.1rem; font-weight: 500;
+      text-decoration: none; border: none; cursor: pointer;
+      width: 100%; transition: all var(--transition);
+      font-style: italic;
+      font-family: 'Georgia', serif;
+    }
+    .btn-primary { 
+      background: var(--clr-accent);
+      color: #FFF; 
+      box-shadow: 0 4px 15px rgba(184, 134, 11, 0.2);
+    }
+    .btn-primary:hover { background: #A0750A; transform: scale(1.02); box-shadow: 0 8px 20px rgba(184, 134, 11, 0.3); }
+    
+    .btn-admin { 
+      background: transparent; 
+      color: var(--clr-accent); 
+      border: 1px solid var(--clr-accent); 
+    }
+    .btn-admin:hover { 
+      background: var(--clr-accent-dim); 
+      transform: scale(1.02); 
+    }
+
+    /* ── Features Section ──────────────────────────────────────────────────── */
+    .features-section {
+      padding: 80px 5%;
+      background: var(--clr-surface);
+      border-top: 1px solid var(--clr-accent-dim);
+    }
+    .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; color: var(--clr-text); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; max-width: 1200px; margin: 0 auto; }
+    
+    .feature-card {
+      background: var(--clr-card); padding: 32px; border-radius: var(--radius);
+      border: 1px solid rgba(184, 134, 11, 0.08); transition: transform var(--transition);
+      box-shadow: var(--shadow);
+    }
+    .feature-card:hover { transform: translateY(-5px); border-color: rgba(184, 134, 11, 0.3); box-shadow: 0 16px 40px rgba(184, 134, 11, 0.08); }
+    .feature-icon { font-size: 2.2rem; margin-bottom: 20px; color: var(--clr-accent); }
+    .feature-card h3 { font-size: 1.4rem; margin-bottom: 12px; }
+    .feature-card p { color: var(--clr-muted); font-size: 0.95rem; font-family: 'Segoe UI', sans-serif; font-style: normal; }
+
+    /* ── Modal ─────────────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(252, 249, 242, 0.8); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 5000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-content {
+      background: var(--clr-surface); padding: 40px; border-radius: var(--radius);
+      width: 90%; max-width: 400px; border: 1px solid rgba(184, 134, 11, 0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s;
+      position: relative;
+    }
+    .modal-overlay.active .modal-content { transform: translateY(0); }
+    .close-btn {
+      position: absolute; top: 16px; right: 20px; background: none; border: none;
+      color: var(--clr-muted); font-size: 1.5rem; cursor: pointer;
+    }
+    .close-btn:hover { color: var(--clr-text); }
+    
+    .modal-content h2 { margin-bottom: 24px; color: var(--clr-text); font-style: italic; }
+    .input-group { margin-bottom: 20px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 8px; color: var(--clr-muted); font-size: 0.9rem; font-family: 'Segoe UI', sans-serif; }
+    .input-group input {
+      width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+      background: #FAFAFA; border: 1px solid rgba(184, 134, 11, 0.2);
+      color: var(--clr-text); font-size: 1rem;
+    }
+    .input-group input:focus { outline: none; border-color: var(--clr-accent); box-shadow: 0 0 0 3px var(--clr-accent-dim); }
+    #loginError { color: #D32F2F; font-size: 0.85rem; margin-top: 8px; display: none; }
+
+    footer { text-align: center; padding: 40px 20px; color: var(--clr-muted); font-size: 0.9rem; }
+
+    @media (max-width: 768px) {
+      .portals-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2.2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="#" class="logo">ChetnaSync</a>
+    <div class="header-right">
+      <nav class="nav-links">
+        <a href="#features" data-i18n="navFeatures">Features</a>
+      </nav>
+      <div class="lang-picker">
+        <button class="lang-btn" id="langToggle">
+          <span class="globe">🌐</span>
+          <span id="langCurrent">English</span>
+          <span>▾</span>
+        </button>
+        <div class="lang-dropdown" id="langDropdown">
+          <button class="lang-option active" data-lang="en">English</button>
+          <button class="lang-option" data-lang="hi">हिन्दी</button>
+          <button class="lang-option" data-lang="mr">मराठी</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 data-i18n="heroTitle">Bridging the Last Mile in Disaster Response</h1>
+      <p data-i18n="heroSub">A highly resilient, offline-first system designed to protect and guide citizens when cellular grids collapse and standard navigation apps fail.</p>
+      
+      <div class="portals-grid">
+        <!-- Citizen Portal (Open Source) -->
+        <div class="portal-card">
+          <div class="portal-icon">🛡️</div>
+          <h2 data-i18n="citizenTitle">Citizen Portal</h2>
+          <p data-i18n="citizenDesc">Open source, no authentication required. Access offline-first maps, safe routes, and emergency SOS triage.</p>
+          <a href="index.html" class="btn btn-primary" onclick="setAppMode('citizen')" data-i18n="btnCitizen">Enter Citizen Portal</a>
+        </div>
+        
+        <!-- Admin Portal (Auth Required) -->
+        <div class="portal-card">
+          <div class="portal-icon">🚨</div>
+          <h2 data-i18n="adminTitle">Admin / Responder</h2>
+          <p data-i18n="adminDesc">Secure access for authorities. View live disaster mappings and track citizens needing immediate rescue.</p>
+          <button class="btn btn-admin" onclick="openLoginModal()" data-i18n="btnAdmin">Admin Login 🔐</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features-section">
+      <h2 class="section-title" data-i18n="featTitle">Core Features</h2>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 data-i18n="f1_title">Geo-Targeted Danger Mapping</h3>
+          <p data-i18n="f1_desc">Parses government alerts to render a precise 'Red Zone' polygon instead of generic text warnings.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 data-i18n="f2_title">Offline-First Resilience</h3>
+          <p data-i18n="f2_desc">A PWA silently caches maps. If connectivity drops, the app remains fully visible and functional without internet.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🗺️</div>
+          <h3 data-i18n="f3_title">Avoidance Routing</h3>
+          <p data-i18n="f3_desc">Calculates escape routes to nearest shelters, refusing to cross danger polygons.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📡</div>
+          <h3 data-i18n="f4_title">Dual-Mode Triage & SMS Fallback</h3>
+          <p data-i18n="f4_desc">Submit emergency status via HTTP when online, or gracefully degrade to invisible SMS pings offline.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3 data-i18n="f5_title">Responder Authority Dashboard</h3>
+          <p data-i18n="f5_desc">A real-time command center displaying the hazard map and live color-coded statuses of citizens.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 ChetnaSync. Built for resilience.</p>
+  </footer>
+
+  <!-- Admin Login Modal -->
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeLoginModal()" aria-label="Close">×</button>
+      <h2 data-i18n="modalTitle">Authority Login</h2>
+      <div class="input-group">
+        <label data-i18n="modalUser">Username</label>
+        <input type="text" id="adminUser" placeholder="Username" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label data-i18n="modalPass">Password</label>
+        <input type="password" id="adminPass" placeholder="••••••••">
+        <div id="loginError" data-i18n="modalError">Invalid credentials.</div>
+      </div>
+      <button class="btn btn-primary" onclick="attemptLogin()" data-i18n="btnAdmin">Login</button>
+    </div>
+  </div>
+
+  <script>
+    // ── MULTI-LANGUAGE SUPPORT ──────────────────────────────────────────────
+    const T = {
+      en: {
+        navFeatures: "Features",
+        heroTitle: "Bridging the Last Mile in Disaster Response",
+        heroSub: "A highly resilient, offline-first system designed to protect and guide citizens when cellular grids collapse and standard navigation apps fail.",
+        citizenTitle: "Citizen Portal",
+        citizenDesc: "Open source, no authentication required. Access offline-first maps, safe routes, and emergency SOS triage.",
+        btnCitizen: "Enter Citizen Portal",
+        adminTitle: "Admin / Responder",
+        adminDesc: "Secure access for authorities. View live disaster mappings and track citizens needing immediate rescue.",
+        btnAdmin: "Admin Login 🔐",
+        featTitle: "Core Features",
+        f1_title: "Geo-Targeted Danger Mapping", f1_desc: "Parses government alerts to render a precise 'Red Zone' polygon instead of generic text warnings.",
+        f2_title: "Offline-First Resilience", f2_desc: "A PWA silently caches maps. If connectivity drops, the app remains fully visible and functional without internet.",
+        f3_title: "Avoidance Routing", f3_desc: "Calculates escape routes to nearest shelters, refusing to cross danger polygons.",
+        f4_title: "Dual-Mode Triage & SMS Fallback", f4_desc: "Submit emergency status via HTTP when online, or gracefully degrade to invisible SMS pings offline.",
+        f5_title: "Responder Authority Dashboard", f5_desc: "A real-time command center displaying the hazard map and live color-coded statuses of citizens.",
+        modalTitle: "Authority Login",
+        modalUser: "Username",
+        modalPass: "Password",
+        modalError: "Invalid credentials."
+      },
+      hi: {
+        navFeatures: "विशेषताएं",
+        heroTitle: "आपदा प्रतिक्रिया में अंतिम मील को पाटना",
+        heroSub: "जब सेलुलर ग्रिड विफल हो जाते हैं, तो नागरिकों की सुरक्षा और मार्गदर्शन करने के लिए डिज़ाइन किया गया एक अत्यधिक लचीला, ऑफ़लाइन-प्रथम सिस्टम।",
+        citizenTitle: "नागरिक पोर्टल",
+        citizenDesc: "ओपन सोर्स, कोई प्रमाणीकरण आवश्यक नहीं। ऑफ़लाइन-प्रथम मानचित्र, सुरक्षित मार्ग और आपातकालीन SOS तक पहुंचें।",
+        btnCitizen: "नागरिक पोर्टल में प्रवेश करें",
+        adminTitle: "व्यवस्थापक / उत्तरदाता",
+        adminDesc: "अधिकारियों के लिए सुरक्षित पहुंच। लाइव आपदा मैपिंग देखें और तत्काल बचाव की आवश्यकता वाले नागरिकों को ट्रैक करें।",
+        btnAdmin: "व्यवस्थापक लॉगिन 🔐",
+        featTitle: "मुख्य विशेषताएं",
+        f1_title: "जियो-टार्गेटेड डेंजर मैपिंग", f1_desc: "सामान्य पाठ चेतावनियों के बजाय सटीक 'रेड ज़ोन' बहुभुज प्रस्तुत करने के लिए सरकारी अलर्ट को पार्स करता है।",
+        f2_title: "ऑफ़लाइन-प्रथम लचीलापन", f2_desc: "एक PWA चुपचाप मानचित्रों को कैश करता है। कनेक्टिविटी कम होने पर, ऐप इंटरनेट के बिना भी चालू रहता है।",
+        f3_title: "एवॉयडेंस रूटिंग", f3_desc: "खतरे वाले क्षेत्रों को पार करने से इनकार करते हुए, निकटतम आश्रयों के लिए सुरक्षित मार्ग की गणना करता है।",
+        f4_title: "डुअल-मोड ट्राइएज और SMS फॉलबैक", f4_desc: "ऑनलाइन होने पर HTTP के माध्यम से आपातकालीन स्थिति सबमिट करें, या ऑफ़लाइन होने पर SMS पिंग भेजें।",
+        f5_title: "उत्तरदाता अधिकार डैशबोर्ड", f5_desc: "एक रीयल-टाइम कमांड सेंटर जो नागरिकों की लाइव स्थिति प्रदर्शित करता है।",
+        modalTitle: "प्राधिकरण लॉगिन",
+        modalUser: "उपयोगकर्ता नाम",
+        modalPass: "पासवर्ड",
+        modalError: "अमान्य क्रेडेंशियल।"
+      },
+      mr: {
+        navFeatures: "वैशिष्ट्ये",
+        heroTitle: "आपत्ती प्रतिसादात शेवटचा टप्पा गाठणे",
+        heroSub: "सेल्युलर ग्रिड कोलमडल्यावर नागरिकांचे संरक्षण आणि मार्गदर्शन करण्यासाठी डिझाइन केलेली ऑफलाइन-प्रथम प्रणाली.",
+        citizenTitle: "नागरिक पोर्टल",
+        citizenDesc: "ओपन सोर्स, लॉगिनची आवश्यकता नाही. ऑफलाइन नकाशे, सुरक्षित मार्ग आणि आणीबाणी SOS मिळवा.",
+        btnCitizen: "नागरिक पोर्टलमध्ये प्रवेश करा",
+        adminTitle: "प्रशासक / बचावकर्ता",
+        adminDesc: "अधिकार्यांसाठी सुरक्षित प्रवेश. थेट आपत्ती मॅपिंग पहा आणि नागरिकांचा मागोवा घ्या.",
+        btnAdmin: "प्रशासक लॉगिन 🔐",
+        featTitle: "मुख्य वैशिष्ट्ये",
+        f1_title: "जिओ-टार्गेटेड डेंजर मॅपिंग", f1_desc: "अचूक 'रेड झोन' बहुभुज प्रस्तुत करण्यासाठी सरकारी इशारे पार्स करते.",
+        f2_title: "ऑफलाइन-प्रथम लवचिकता", f2_desc: "PWA नकाशे कॅशे करते. इंटरनेट नसतानाही अ‍ॅप कार्यरत राहते.",
+        f3_title: "एव्हॉइडन्स राउटिंग", f3_desc: "धोक्याचे क्षेत्र पार न करता जवळच्या आश्रयस्थानापर्यंत सुरक्षित मार्गाची गणना करते.",
+        f4_title: "दुहेरी-मोड ट्राइएज आणि SMS फॉलबैक", f4_desc: "ऑनलाइन असताना HTTP द्वारे किंवा ऑफलाइन असताना SMS द्वारे आपत्कालीन स्थिती पाठवा.",
+        f5_title: "बचावकर्ता अधिकार डॅशबोर्ड", f5_desc: "नागरिकांची थेट स्थिती दर्शविणारे रीअल-टाइम कमांड सेंटर.",
+        modalTitle: "प्राधिकरण लॉगिन",
+        modalUser: "वापरकर्तानाव",
+        modalPass: "पासवर्ड",
+        modalError: "चुकीची माहिती."
+      },
+      mr: {
+        navFeatures: "वैशिष्ट्ये",
+        heroTitle: "आपत्ती प्रतिसादात शेवटचा टप्पा गाठणे",
+        heroSub: "सेल्युलर ग्रिड कोलमडल्यावर नागरिकांचे संरक्षण आणि मार्गदर्शन करण्यासाठी डिझाइन केलेली ऑफलाइन-प्रथम प्रणाली.",
+        citizenTitle: "नागरिक पोर्टल",
+        citizenDesc: "ओपन सोर्स, लॉगिनची आवश्यकता नाही. ऑफलाइन नकाशे, सुरक्षित मार्ग आणि आणीबाणी SOS मिळवा.",
+        btnCitizen: "नागरिक पोर्टलमध्ये प्रवेश करा",
+        adminTitle: "प्रशासक / बचावकर्ता",
+        adminDesc: "अधिकार्यांसाठी सुरक्षित प्रवेश. थेट आपत्ती मॅपिंग पहा आणि नागरिकांचा मागोवा घ्या.",
+        btnAdmin: "प्रशासक लॉगिन 🔐",
+        featTitle: "मुख्य वैशिष्ट्ये",
+        f1_title: "जिओ-टार्गेटेड डेंजर मॅपिंग", f1_desc: "अचूक 'रेड झोन' बहुभुज प्रस्तुत करण्यासाठी सरकारी इशारे पार्स करते.",
+        f2_title: "ऑफलाइन-प्रथम लवचिकता", f2_desc: "PWA नकाशे कॅशे करते. इंटरनेट नसतानाही अ‍ॅप कार्यरत राहते.",
+        f3_title: "एव्हॉइडन्स राउटिंग", f3_desc: "धोक्याचे क्षेत्र पार न करता जवळच्या आश्रयस्थानापर्यंत सुरक्षित मार्गाची गणना करते.",
+        f4_title: "दुहेरी-मोड ट्राइएज आणि SMS फॉलबॅक", f4_desc: "ऑनलाइन असताना HTTP द्वारे किंवा ऑफलाइन असताना SMS द्वारे आपत्कालीन स्थिती पाठवा.",
+        f5_title: "बचावकर्ता अधिकार डॅशबोर्ड", f5_desc: "नागरिकांची थेट स्थिती दर्शविणारे रीअल-टाइम कमांड सेंटर.",
+        modalTitle: "प्राधिकरण लॉगिन",
+        modalUser: "वापरकर्तानाव",
+        modalPass: "पासवर्ड",
+        modalError: "चुकीची माहिती."
+      },
+      ta: {
+        navFeatures: "Features", heroTitle: "Bridging the Last Mile in Disaster Response", heroSub: "A highly resilient, offline-first system designed to protect and guide citizens when cellular grids collapse and standard navigation apps fail.",
+        citizenTitle: "Citizen Portal", citizenDesc: "Open source, no authentication required. Access offline-first maps, safe routes, and emergency SOS triage.",
+        btnCitizen: "Enter Citizen Portal", adminTitle: "Admin / Responder", adminDesc: "Secure access for authorities. View live disaster mappings and track citizens needing immediate rescue.",
+        btnAdmin: "Admin Login \u2192", feat1Title: "Geo-Targeted Danger Mapping", feat1Desc: "Pull authoritative hazard zones from the Govt and avoid restricted regions.",
+        feat2Title: "Avoidance Routing", feat2Desc: "Automatically navigate around Danger Zones based on real-time data.",
+        feat3Title: "Dual-Mode SOS", feat3Desc: "Send distress signals via API, seamlessly falling back to SMS when offline.",
+        feat4Title: "Responder Authority", feat4Desc: "Live dashboard tracking citizen triage status for optimal rescue dispatch.",
+        modalTitle: "Responder Login", lblUser: "Username", lblPass: "Password", btnLogin: "Login"
+      },
+      bn: {
+        navFeatures: "Features", heroTitle: "Bridging the Last Mile in Disaster Response", heroSub: "A highly resilient, offline-first system designed to protect and guide citizens when cellular grids collapse and standard navigation apps fail.",
+        citizenTitle: "Citizen Portal", citizenDesc: "Open source, no authentication required. Access offline-first maps, safe routes, and emergency SOS triage.",
+        btnCitizen: "Enter Citizen Portal", adminTitle: "Admin / Responder", adminDesc: "Secure access for authorities. View live disaster mappings and track citizens needing immediate rescue.",
+        btnAdmin: "Admin Login \u2192", feat1Title: "Geo-Targeted Danger Mapping", feat1Desc: "Pull authoritative hazard zones from the Govt and avoid restricted regions.",
+        feat2Title: "Avoidance Routing", feat2Desc: "Automatically navigate around Danger Zones based on real-time data.",
+        feat3Title: "Dual-Mode SOS", feat3Desc: "Send distress signals via API, seamlessly falling back to SMS when offline.",
+        feat4Title: "Responder Authority", feat4Desc: "Live dashboard tracking citizen triage status for optimal rescue dispatch.",
+        modalTitle: "Responder Login", lblUser: "Username", lblPass: "Password", btnLogin: "Login"
+      },
+      te: {
+        navFeatures: "Features", heroTitle: "Bridging the Last Mile in Disaster Response", heroSub: "A highly resilient, offline-first system designed to protect and guide citizens when cellular grids collapse and standard navigation apps fail.",
+        citizenTitle: "Citizen Portal", citizenDesc: "Open source, no authentication required. Access offline-first maps, safe routes, and emergency SOS triage.",
+        btnCitizen: "Enter Citizen Portal", adminTitle: "Admin / Responder", adminDesc: "Secure access for authorities. View live disaster mappings and track citizens needing immediate rescue.",
+        btnAdmin: "Admin Login \u2192", feat1Title: "Geo-Targeted Danger Mapping", feat1Desc: "Pull authoritative hazard zones from the Govt and avoid restricted regions.",
+        feat2Title: "Avoidance Routing", feat2Desc: "Automatically navigate around Danger Zones based on real-time data.",
+        feat3Title: "Dual-Mode SOS", feat3Desc: "Send distress signals via API, seamlessly falling back to SMS when offline.",
+        feat4Title: "Responder Authority", feat4Desc: "Live dashboard tracking citizen triage status for optimal rescue dispatch.",
+        modalTitle: "Responder Login", lblUser: "Username", lblPass: "Password", btnLogin: "Login"
+      }
+    };
+
+    const LANG_NAMES = { en: 'English', hi: 'हिन्दी', mr: 'मराठी' };
+    let currentLang = localStorage.getItem('chetnasync-lang') || 'en';
+
+    function applyTranslations(lang) {
+      if (!T[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('chetnasync-lang', lang);
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang][key]) {
+          el.textContent = T[lang][key];
+        }
+      });
+
+      document.getElementById('langCurrent').textContent = LANG_NAMES[lang];
+      document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === lang);
+      });
+    }
+
+    // Initialize translations
+    applyTranslations(currentLang);
+
+    // Language Dropdown Toggle
+    document.getElementById('langToggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('langDropdown').classList.toggle('open');
+    });
+
+    document.querySelectorAll('.lang-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyTranslations(btn.dataset.lang);
+        document.getElementById('langDropdown').classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      document.getElementById('langDropdown').classList.remove('open');
+    });
+
+    // ── PORTAL NAVIGATION & MODAL ───────────────────────────────────────────
+    function setAppMode(mode) {
+      // For demonstration, we could store the requested view in sessionStorage
+      // Then index.html can read this to open the correct tab automatically.
+      sessionStorage.setItem('initialView', mode);
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+      document.getElementById('adminUser').focus();
+      document.getElementById('loginError').style.display = 'none';
+      document.addEventListener('keydown', handleModalKeydown);
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+      document.removeEventListener('keydown', handleModalKeydown);
+    }
+
+    function handleModalKeydown(e) {
+      if (e.key === 'Escape') {
+        closeLoginModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const modal = document.getElementById('loginModal');
+        // Select focusable elements within modal
+        const focusableElements = modal.querySelectorAll('button, input');
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) { // Shift + Tab
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else { // Tab
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    }
+
+    document.getElementById('adminPass').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        attemptLogin();
+      }
+    });
+
+    function attemptLogin() {
+      const u = document.getElementById('adminUser').value;
+      const p = document.getElementById('adminPass').value;
+      const err = document.getElementById('loginError');
+      const btn = document.querySelector('#loginModal .btn-primary');
+      const originalText = btn.textContent;
+      
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('AuthError');
+        return res.json();
+      })
+      .then(data => {
+        if (data.token) {
+          sessionStorage.setItem('apiToken', data.token);
+          sessionStorage.setItem('initialView', 'dashboard');
+          window.location.href = 'index.html';
+        }
+      })
+      .catch(error => {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        if (error.message === 'AuthError') {
+          err.textContent = T[currentLang].modalError || 'Invalid credentials.';
+        } else {
+          err.textContent = 'Network error. Please try again.';
+        }
+        err.style.display = 'block';
+      });
+    }
+  </script>
+
+</body>
+</html>
+

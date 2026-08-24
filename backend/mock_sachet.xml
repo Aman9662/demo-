@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>SACHET-MOCK-001</identifier>
+  <sender>ndma@gov.in</sender>
+  <sent>2026-08-23T10:00:00+05:30</sent>
+  <status>Actual</status>
+  <msgType>Alert</msgType>
+  <scope>Public</scope>
+  <info>
+    <category>Met</category>
+    <event>Severe Flood Warning</event>
+    <urgency>Immediate</urgency>
+    <severity>Extreme</severity>
+    <certainty>Observed</certainty>
+    <headline>Flash flood in Mumbai suburbs</headline>
+    <description>Severe flooding observed. Move to safe shelters immediately.</description>
+    <instruction>Evacuate area and avoid red zone.</instruction>
+    <area>
+      <areaDesc>Mumbai Suburbs</areaDesc>
+      <!-- CAP polygon format: lat,lon lat,lon ... -->
+      <polygon>19.080,72.870 19.080,72.875 19.075,72.875 19.075,72.870 19.080,72.870</polygon>
+    </area>
+  </info>
+</alert>

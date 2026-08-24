@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e">
+  <title>ChetnaSync</title>
+
+  <!-- Leaflet CSS & JS via CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Light Golden Designer Theme */
+      --clr-bg:       #FCF9F2; /* Pale Golden Cream */
+      --clr-surface:  #FFFFFF; /* Clean White */
+      --clr-card:     #FFFFFF; /* White Card */
+      --clr-accent:   #B8860B; /* Deep Designer Gold */
+      --clr-accent-dim: rgba(184, 134, 11, 0.12);
+      --clr-text:     #2D2824; /* Warm Charcoal */
+      --clr-muted:    #8A837D; /* Soft Taupe */
+      
+      /* Emergency colors - Slightly deeper for light mode contrast */
+      --clr-safe:     #27ae60; 
+      --clr-rescue:   #e67e22; 
+      --clr-injured:  #d35400; 
+      --clr-trapped:  #c0392b; 
+      --clr-online:   #27ae60;
+      --clr-offline:  #c0392b;
+      
+      --radius:       24px;
+      --radius-sm:    12px;
+      --shadow:       0 12px 40px rgba(0, 0, 0, 0.05);
+      --transition:   0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', 'Noto Sans Telugu', sans-serif;
+      background-color: var(--clr-bg);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(184, 134, 11, 0.03), transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(184, 134, 11, 0.04), transparent 50%);
+      color: var(--clr-text);
+      height: 100vh; height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Focus Visible ────────────────────────────────────────────────────── */
+    :focus-visible {
+      outline: 3px solid var(--clr-accent);
+      outline-offset: 2px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(252, 249, 242, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--clr-accent-dim);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      z-index: 2000;
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-logo {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-style: italic;
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--clr-accent);
+    }
+
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--clr-online);
+      flex-shrink: 0;
+      transition: background var(--transition);
+    }
+    .status-dot.offline { background: var(--clr-offline); animation: pulse-dot 1.5s infinite; }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-label {
+      font-size: 0.7rem;
+      color: var(--clr-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Language Picker ───────────────────────────────────────────────────── */
+    .lang-picker {
+      position: relative;
+    }
+
+    .lang-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--clr-card);
+      border: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius-sm);
+      color: var(--clr-text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .lang-btn:hover { background: rgba(184, 134, 11, 0.05); border-color: var(--clr-accent); }
+    .lang-btn .globe { font-size: 1rem; }
+
+    .lang-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      z-index: 3000;
+      min-width: 160px;
+    }
+    .lang-dropdown.open { display: block; animation: fadeIn 0.2s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      color: var(--clr-text);
+      font-size: 0.9rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .lang-option:hover { background: rgba(0,0,0,0.03); }
+    .lang-option.active { background: var(--clr-accent); color: #fff; }
+
+    /* ── Nav Tabs ──────────────────────────────────────────────────────────── */
+    nav {
+      display: flex;
+      background: var(--clr-bg);
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 12px 0;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--clr-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .nav-tab:hover {
+      background: rgba(0,0,0,0.02);
+      color: var(--clr-text);
+    }
+    .nav-tab.active {
+      color: var(--clr-accent);
+      border-bottom-color: var(--clr-accent);
+      background: var(--clr-accent-dim);
+    }
+    .nav-tab .tab-icon { font-size: 1.2rem; }
+
+    /* ── Views ─────────────────────────────────────────────────────────────── */
+    .views-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view {
+      display: none;
+      position: absolute;
+      inset: 0;
+      flex-direction: column;
+    }
+    .view.active { display: flex; }
+
+    /* ── Maps ──────────────────────────────────────────────────────────────── */
+    .map-container {
+      flex: 1;
+      position: relative;
+    }
+    #map-citizen, #map-dashboard { 
+      width: 100%; 
+      height: 100%; 
+    }
+
+    /* ── Triage Bottom Sheet ───────────────────────────────────────────────── */
+    .triage-sheet {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 16px 20px 24px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+      transition: transform var(--transition);
+    }
+
+    .sheet-handle {
+      width: 48px;
+      height: 5px;
+      background: var(--clr-muted);
+      opacity: 0.3;
+      border-radius: 3px;
+      margin: 0 auto 16px;
+    }
+
+    .sheet-title {
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--clr-accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .triage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .triage-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 12px;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 30px; /* Designer pill */
+      color: #fff;
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      min-height: 64px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .triage-btn:active { transform: scale(0.96); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+
+    .triage-btn.safe    { background: var(--clr-safe); }
+    .triage-btn.rescue  { background: var(--clr-rescue); }
+    .triage-btn.injured { background: var(--clr-injured); }
+    .triage-btn.trapped {
+      background: var(--clr-trapped);
+      grid-column: 1 / -1;
+      font-size: 1.15rem;
+      min-height: 72px;
+      animation: trapped-pulse 2s infinite;
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    @keyframes trapped-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4); }
+      50% { box-shadow: 0 0 0 16px rgba(192, 57, 43, 0); }
+    }
+
+    .triage-btn .btn-icon { font-size: 1.3rem; font-style: normal; }
+    .sms-badge {
+      display: none;
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+    }
+    body.offline .sms-badge { display: block; }
+
+    /* ── Dashboard Stats Overlay ───────────────────────────────────────────── */
+    .stats-card {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--clr-accent-dim);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      min-width: 180px;
+    }
+
+    .stats-title {
+      font-size: 0.8rem;
+      color: var(--clr-accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 0.9rem;
+    }
+    .stat-row .stat-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .stat-row .stat-label { flex: 1; }
+    .stat-row .stat-count { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* ── Toast ─────────────────────────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--clr-card);
+      color: var(--clr-text);
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 5000;
+      transition: bottom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show { bottom: 24px; }
+    .toast.success { border-left: 4px solid var(--clr-safe); }
+    .toast.info    { border-left: 4px solid var(--clr-rescue); }
+
+    /* ── Blinking Dashboard Marker ─────────────────────────────────────────── */
+    .blinking-marker { animation: blinker 1s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0; } }
+
+    /* ── Leaflet overrides for dark theme ───────────────────────────────────── */
+    .leaflet-control-zoom a {
+      background: var(--clr-surface) !important;
+      color: var(--clr-text) !important;
+      border-color: rgba(255,255,255,0.1) !important;
+    }
+    .leaflet-control-attribution { font-size: 0 !important; height: 0 !important; }
+
+    /* ── Responsive ────────────────────────────────────────────────────────── */
+    @media (min-width: 768px) {
+      .triage-grid { grid-template-columns: repeat(4, 1fr); }
+      .triage-btn.trapped { grid-column: auto; }
+      .triage-sheet { max-width: 600px; left: 50%; transform: translateX(-50%); border-radius: var(--radius); bottom: 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="header-left">
+      <span class="app-logo">ChetnaSync</span>
+      <div class="status-dot" id="statusDot" aria-hidden="true"></div>
+      <span class="status-label" id="statusLabel" data-i18n="online">Online</span>
+    </div>
+    <div class="header-right">
+      <div class="lang-picker">
+        <button class="lang-btn" id="langToggle" aria-label="Change language" aria-haspopup="listbox">
+          <span class="globe">🌐</span>
+          <span id="langCurrent">English</span>
+          <span>▾</span>
+        </button>
+        <div class="lang-dropdown" id="langDropdown" role="listbox" aria-label="Select language">
+          <button class="lang-option active" role="option" data-lang="en">English</button>
+          <button class="lang-option" role="option" data-lang="hi">हिन्दी</button>
+          <button class="lang-option" role="option" data-lang="mr">मराठी</button>
+          <button class="lang-option" role="option" data-lang="ta">தமிழ்</button>
+          <button class="lang-option" role="option" data-lang="bn">বাংলা</button>
+          <button class="lang-option" role="option" data-lang="te">తెలుగు</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Navigation ─────────────────────────────────────────────────────── -->
+  <nav aria-label="Main navigation">
+    <button class="nav-tab active" id="btn-citizen" onclick="switchView('citizen')" aria-selected="true" role="tab">
+      <span class="tab-icon">🛡️</span>
+      <span data-i18n="tabCitizen">Citizen</span>
+    </button>
+    <button class="nav-tab" id="btn-dashboard" onclick="switchView('dashboard')" aria-selected="false" role="tab">
+      <span class="tab-icon">📊</span>
+      <span data-i18n="tabDashboard">Dashboard</span>
+    </button>
+  </nav>
+
+  <!-- ── Views Container ────────────────────────────────────────────────── -->
+  <main class="views-container">
+
+    <!-- Citizen App View -->
+    <section id="view-citizen" class="view active" role="tabpanel" aria-label="Citizen app">
+      <div class="map-container">
+        <div id="map-citizen"></div>
+
+        <!-- Triage Bottom Sheet -->
+        <div class="triage-sheet" role="region" aria-label="Emergency status">
+          <div class="sheet-handle" aria-hidden="true"></div>
+          <p class="sheet-title" data-i18n="triageTitle">Report your status</p>
+          <div class="triage-grid">
+            <button class="triage-btn safe" onclick="sendSOS('SAFE')" aria-label="I am safe">
+              <span class="btn-icon">✅</span>
+              <span data-i18n="btnSafe">I'm Safe</span>
+              <span class="sms-badge">SMS</span>
+            </button>
+            <button class="triage-btn rescue" onclick="sendSOS('RESCUE')" aria-label="Need rescue">
+              <span class="btn-icon">🆘</span>
+              <span data-i18n="btnRescue">Need Rescue</span>
+              <span class="sms-badge">SMS</span>
+            </button>
+            <button class="triage-btn injured" onclick="sendSOS('INJURED')" aria-label="Injured">
+              <span class="btn-icon">🩹</span>
+              <span data-i18n="btnInjured">Injured</span>
+              <span class="sms-badge">SMS</span>
+            </button>
+            <button class="triage-btn trapped" onclick="sendSOS('TRAPPED')" aria-label="Trapped SOS">
+              <span class="btn-icon">🚨</span>
+              <span data-i18n="btnTrapped">TRAPPED — SOS</span>
+              <span class="sms-badge">SMS</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Responder Dashboard View -->
+    <section id="view-dashboard" class="view" role="tabpanel" aria-label="Responder dashboard">
+      <div class="map-container">
+        <div id="map-dashboard"></div>
+        <div class="stats-card">
+          <p class="stats-title" data-i18n="statsTitle">Live Signals</p>
+          <div id="stats-content">
+            <div class="stat-row">
+              <span class="stat-dot" style="background:var(--clr-trapped)"></span>
+              <span class="stat-label" data-i18n="statTrapped">Trapped</span>
+              <span class="stat-count" id="count-trapped">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-dot" style="background:var(--clr-injured)"></span>
+              <span class="stat-label" data-i18n="statInjured">Injured</span>
+              <span class="stat-count" id="count-injured">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-dot" style="background:var(--clr-rescue)"></span>
+              <span class="stat-label" data-i18n="statRescue">Rescue</span>
+              <span class="stat-count" id="count-rescue">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-dot" style="background:var(--clr-safe)"></span>
+              <span class="stat-label" data-i18n="statSafe">Safe</span>
+              <span class="stat-count" id="count-safe">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Toast ──────────────────────────────────────────────────────────── -->
+  <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+  <script>
+    // ══════════════════════════════════════════════════════════════════════════
+    // i18n TRANSLATIONS
+    // ══════════════════════════════════════════════════════════════════════════
+    const T = {
+      en: {
+        online: 'Online', offline: 'Offline',
+        tabCitizen: 'Citizen', tabDashboard: 'Dashboard',
+        triageTitle: 'Report your status',
+        btnSafe: "I'm Safe", btnRescue: 'Need Rescue', btnInjured: 'Injured', btnTrapped: 'TRAPPED — SOS',
+        statsTitle: 'Live Signals',
+        statTrapped: 'Trapped', statInjured: 'Injured', statRescue: 'Rescue', statSafe: 'Safe',
+        toastSent: 'Status sent ✓', toastSMS: 'SMS opened — send the message',
+        toastError: 'Failed to send — try again',
+        popupYou: 'You are here',
+      },
+      hi: {
+        online: 'ऑनलाइन', offline: 'ऑफ़लाइन',
+        tabCitizen: 'नागरिक', tabDashboard: 'डैशबोर्ड',
+        triageTitle: 'अपनी स्थिति बताएं',
+        btnSafe: 'मैं सुरक्षित हूँ', btnRescue: 'बचाव चाहिए', btnInjured: 'घायल', btnTrapped: 'फँसा हूँ — SOS',
+        statsTitle: 'लाइव सिग्नल',
+        statTrapped: 'फँसे', statInjured: 'घायल', statRescue: 'बचाव', statSafe: 'सुरक्षित',
+        toastSent: 'स्थिति भेजी गई ✓', toastSMS: 'SMS खुला — संदेश भेजें',
+        toastError: 'भेजने में विफल — पुनः प्रयास करें',
+        popupYou: 'आप यहाँ हैं',
+      },
+      mr: {
+        online: 'ऑनलाइन', offline: 'ऑफलाइन',
+        tabCitizen: 'नागरिक', tabDashboard: 'डॅशबोर्ड',
+        triageTitle: 'तुमची स्थिती कळवा',
+        btnSafe: 'मी सुरक्षित आहे', btnRescue: 'बचाव हवा', btnInjured: 'जखमी', btnTrapped: 'अडकलो — SOS',
+        statsTitle: 'लाइव्ह सिग्नल',
+        statTrapped: 'अडकलेले', statInjured: 'जखमी', statRescue: 'बचाव', statSafe: 'सुरक्षित',
+        toastSent: 'स्थिती पाठवली ✓', toastSMS: 'SMS उघडला — संदेश पाठवा',
+        toastError: 'पाठवता आले नाही — पुन्हा प्रयत्न करा',
+        popupYou: 'तुम्ही इथे आहात',
+      },
+      ta: {
+        online: 'ஆன்லைன்', offline: 'ஆஃப்லைன்',
+        tabCitizen: 'குடிமகன்', tabDashboard: 'டாஷ்போர்டு',
+        triageTitle: 'உங்கள் நிலையைத் தெரிவிக்கவும்',
+        btnSafe: 'நான் பாதுகாப்பாக', btnRescue: 'மீட்பு தேவை', btnInjured: 'காயமடைந்தேன்', btnTrapped: 'சிக்கினேன் — SOS',
+        statsTitle: 'நேரடி சிக்னல்கள்',
+        statTrapped: 'சிக்கியவர்', statInjured: 'காயமானவர்', statRescue: 'மீட்பு', statSafe: 'பாதுகாப்பு',
+        toastSent: 'நிலை அனுப்பப்பட்டது ✓', toastSMS: 'SMS திறந்தது — செய்தி அனுப்புங்கள்',
+        toastError: 'அனுப்ப இயலவில்லை — மீண்டும் முயற்சிக்கவும்',
+        popupYou: 'நீங்கள் இங்கே இருக்கிறீர்கள்',
+      },
+      bn: {
+        online: 'অনলাইন', offline: 'অফলাইন',
+        tabCitizen: 'নাগরিক', tabDashboard: 'ড্যাশবোর্ড',
+        triageTitle: 'আপনার অবস্থা জানান',
+        btnSafe: 'আমি নিরাপদ', btnRescue: 'উদ্ধার দরকার', btnInjured: 'আহত', btnTrapped: 'আটকে আছি — SOS',
+        statsTitle: 'লাইভ সিগন্যাল',
+        statTrapped: 'আটকে পড়া', statInjured: 'আহত', statRescue: 'উদ্ধার', statSafe: 'নিরাপদ',
+        toastSent: 'অবস্থা পাঠানো হয়েছে ✓', toastSMS: 'SMS খুলেছে — বার্তা পাঠান',
+        toastError: 'পাঠাতে ব্যর্থ — আবার চেষ্টা করুন',
+        popupYou: 'আপনি এখানে আছেন',
+      },
+      te: {
+        online: 'ఆన్‌లైన్', offline: 'ఆఫ్‌లైన్',
+        tabCitizen: 'పౌరుడు', tabDashboard: 'డాష్‌బోర్డ్',
+        triageTitle: 'మీ స్థితిని తెలియజేయండి',
+        btnSafe: 'నేను సురక్షితం', btnRescue: 'రక్షణ కావాలి', btnInjured: 'గాయపడ్డాను', btnTrapped: 'ఇరుక్కున్నాను — SOS',
+        statsTitle: 'లైవ్ సిగ్నల్స్',
+        statTrapped: 'ఇరుక్కున్న', statInjured: 'గాయపడిన', statRescue: 'రక్షణ', statSafe: 'సురక్షిత',
+        toastSent: 'స్థితి పంపబడింది ✓', toastSMS: 'SMS తెరిచింది — సందేశం పంపండి',
+        toastError: 'పంపడం విఫలమైంది — మళ్ళీ ప్రయత్నించండి',
+        popupYou: 'మీరు ఇక్కడ ఉన్నారు',
+      }
+    };
+
+    const LANG_NAMES = { en: 'English', hi: 'हिन्दी', mr: 'मराठी', ta: 'தமிழ்', bn: 'বাংলা', te: 'తెలుగు' };
+
+    let currentLang = 'en';
+
+    function detectLang() {
+      const saved = localStorage.getItem('chetnasync-lang');
+      if (saved && T[saved]) return saved;
+      const nav = (navigator.language || '').slice(0, 2).toLowerCase();
+      return T[nav] ? nav : 'en';
+    }
+
+    function setLang(lang) {
+      if (!T[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('chetnasync-lang', lang);
+
+      // Update all data-i18n elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (T[lang][key]) el.textContent = T[lang][key];
+      });
+
+      // Update translated aria-labels on triage buttons
+      document.querySelectorAll('.triage-btn').forEach(btn => {
+        const span = btn.querySelector('[data-i18n]');
+        if (span) btn.setAttribute('aria-label', span.textContent);
+      });
+
+      // Update language picker
+      document.getElementById('langCurrent').textContent = LANG_NAMES[lang];
+      document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === lang);
+      });
+
+      // Update status label
+      updateOnlineStatus();
+
+      // Update map popup if exists
+      if (userMarkerPopup) {
+        userMarkerPopup.setContent(t('popupYou'));
+      }
+    }
+
+    function t(key) {
+      return (T[currentLang] && T[currentLang][key]) || T.en[key] || key;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // APP CONFIG
+    // ══════════════════════════════════════════════════════════════════════════
+    const BACKEND_URL = ''; 
+    // In production, this should come from server config
+    const smsNumber = '+1234567890';
+
+    // Get Auth Token for Admin endpoints
+    const getToken = () => sessionStorage.getItem('apiToken') || '';
+    const userId = 'user-' + Math.floor(Math.random() * 10000);
+    const userLat = 19.070;
+    const userLon = 72.875;
+
+    let citizenMap, dashboardMap;
+    let dashboardInterval;
+    let hazardCoords = null;
+    let citizenLayers;
+    let userMarkerPopup = null;
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ONLINE / OFFLINE STATUS
+    // ══════════════════════════════════════════════════════════════════════════
+    function updateOnlineStatus() {
+      const online = navigator.onLine;
+      const dot = document.getElementById('statusDot');
+      const label = document.getElementById('statusLabel');
+      dot.classList.toggle('offline', !online);
+      label.textContent = online ? t('online') : t('offline');
+      document.body.classList.toggle('offline', !online);
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // LANGUAGE PICKER
+    // ══════════════════════════════════════════════════════════════════════════
+    document.getElementById('langToggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('langDropdown').classList.toggle('open');
+    });
+
+    document.querySelectorAll('.lang-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setLang(btn.dataset.lang);
+        document.getElementById('langDropdown').classList.remove('open');
+      });
+    });
+
+    // Close dropdown on outside click or Escape key
+    document.addEventListener('click', () => {
+      document.getElementById('langDropdown').classList.remove('open');
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('langDropdown').classList.remove('open');
+      }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // VIEW SWITCHING
+    // ══════════════════════════════════════════════════════════════════════════
+    function switchView(viewName) {
+      clearInterval(dashboardInterval);
+
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      const tab = document.getElementById(`btn-${viewName}`);
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      if (viewName === 'citizen') {
+        setTimeout(() => { if (citizenMap) citizenMap.invalidateSize(); }, 100);
+      } else {
+        setTimeout(() => { if (dashboardMap) dashboardMap.invalidateSize(); }, 100);
+        startDashboardPolling();
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // TOAST NOTIFICATIONS
+    // ══════════════════════════════════════════════════════════════════════════
+    let toastTimer;
+    function showToast(msgKey, type = 'success') {
+      const el = document.getElementById('toast');
+      el.className = 'toast ' + type;
+      el.textContent = (type === 'success' ? '✅ ' : '📱 ') + t(msgKey);
+      // Force reflow for re-animation
+      void el.offsetWidth;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // MAPS
+    // ══════════════════════════════════════════════════════════════════════════
+    function initMaps() {
+      // Use Carto Voyager for a clean, light map theme
+      const lightTiles = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+      // Citizen Map
+      citizenMap = L.map('map-citizen', { zoomControl: false }).setView([userLat, userLon], 14);
+      L.tileLayer(lightTiles, { maxZoom: 19 }).addTo(citizenMap);
+      L.control.zoom({ position: 'topright' }).addTo(citizenMap);
+
+      const userIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:16px;height:16px;background:#B8860B;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(184, 134, 11,0.5);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
+      });
+      const userMarker = L.marker([userLat, userLon], { icon: userIcon }).addTo(citizenMap);
+      userMarkerPopup = userMarker.bindPopup(t('popupYou')).getPopup();
+      userMarker.openPopup();
+
+      // Dashboard Map
+      dashboardMap = L.map('map-dashboard', { zoomControl: false }).setView([userLat, userLon], 14);
+      L.tileLayer(lightTiles, { maxZoom: 19 }).addTo(dashboardMap);
+      L.control.zoom({ position: 'topright' }).addTo(dashboardMap);
+
+      citizenLayers = L.layerGroup().addTo(dashboardMap);
+
+      loadDisasterData();
+    }
+
+    async function loadDisasterData() {
+      try {
+        const hazardRes = await fetch(`${BACKEND_URL}/api/hazard`);
+        if (!hazardRes.ok) throw new Error('Hazard data failed');
+        const hazardData = await hazardRes.json();
+
+        const shelterRes = await fetch(`${BACKEND_URL}/api/verified-shelters`);
+        if (!shelterRes.ok) throw new Error('Shelter data failed');
+        const shelterData = await shelterRes.json();
+
+        if (hazardData.features) {
+          const coords = hazardData.features[0].geometry.coordinates[0].map(c => [c[1], c[0]]);
+          hazardCoords = coords;
+          const polyStyle = { color: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 0.25, weight: 2, dashArray: '6,4' };
+          L.polygon(coords, polyStyle).addTo(citizenMap);
+          L.polygon(coords, polyStyle).addTo(dashboardMap);
+        }
+
+        if (shelterData.features) {
+          const shelterIcon = L.divIcon({
+            className: '',
+            html: '<div style="font-size:20px;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.5));">🏥</div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          });
+          shelterData.features.forEach(s => {
+            const lat = s.geometry.coordinates[1];
+            const lon = s.geometry.coordinates[0];
+            L.marker([lat, lon], { icon: shelterIcon }).addTo(citizenMap).bindPopup(s.properties.name);
+          });
+
+          if (hazardCoords && shelterData.features.length > 0) {
+            calculateRoute([userLon, userLat], shelterData.features[0].geometry.coordinates);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading data", err);
+        showToast('toastError', 'info');
+      }
+    }
+
+    async function calculateRoute(start, end) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/route`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            coordinates: [start, end],
+            options: {
+              avoid_polygons: {
+                type: "Polygon",
+                coordinates: [hazardCoords.map(c => [c[1], c[0]])]
+              }
+            }
+          })
+        });
+        if (!res.ok) throw new Error('Routing failed');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        if (data.features) {
+          const routeCoords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+          L.polyline(routeCoords, { color: '#3498db', weight: 4, opacity: 0.8, dashArray: '8,6' }).addTo(citizenMap);
+        }
+      } catch (err) {
+        console.error("Routing error", err);
+        showToast('toastError', 'info');
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // CITIZEN SOS
+    // ══════════════════════════════════════════════════════════════════════════
+    function sendSOS(status) {
+      if (navigator.onLine) {
+        fetch(`${BACKEND_URL}/api/triage/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: userId, status: status, lat: userLat, lon: userLon })
+        })
+        .then(res => {
+          if (res.ok) showToast('toastSent', 'success');
+          else showToast('toastError', 'info');
+        })
+        .catch(() => showToast('toastError', 'info'));
+      } else {
+        const message = `STATUS:${status} LAT:${userLat} LON:${userLon}`;
+        window.location.href = `sms:${smsNumber}?body=${encodeURIComponent(message)}`;
+        showToast('toastSMS', 'info');
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // DASHBOARD
+    // ══════════════════════════════════════════════════════════════════════════
+    function startDashboardPolling() {
+      fetchCitizens();
+      dashboardInterval = setInterval(fetchCitizens, 2000);
+    }
+
+    async function fetchCitizens() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/citizens`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (res.status === 401) {
+          // Token invalid or missing, redirect to home
+          window.location.href = 'home.html';
+          return;
+        }
+        if (!res.ok) throw new Error('Dashboard fetch failed');
+        const citizens = await res.json();
+
+        if (citizenLayers) citizenLayers.clearLayers();
+
+        let safe = 0, rescue = 0, injured = 0, trapped = 0;
+
+        citizens.forEach(c => {
+          let color = '#888';
+          if (c.status === 'SAFE')    { color = '#2ecc71'; safe++; }
+          if (c.status === 'RESCUE')  { color = '#f39c12'; rescue++; }
+          if (c.status === 'INJURED') { color = '#e67e22'; injured++; }
+          if (c.status === 'TRAPPED') { color = '#e74c3c'; trapped++; }
+
+          const marker = L.circleMarker([c.lat, c.lon], {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.9,
+            radius: c.status === 'TRAPPED' ? 10 : 6,
+            weight: 2,
+            className: c.status === 'TRAPPED' ? 'blinking-marker' : ''
+          });
+          const popupEl = document.createElement('div');
+          const boldId = document.createElement('b');
+          boldId.textContent = c.id;
+          popupEl.appendChild(boldId);
+          popupEl.appendChild(document.createElement('br'));
+          popupEl.appendChild(document.createTextNode(c.status));
+          
+          marker.bindPopup(popupEl);
+
+          if (citizenLayers) citizenLayers.addLayer(marker);
+        });
+
+        document.getElementById('count-trapped').textContent = trapped;
+        document.getElementById('count-injured').textContent = injured;
+        document.getElementById('count-rescue').textContent = rescue;
+        document.getElementById('count-safe').textContent = safe;
+      } catch (err) {
+        console.error("Dashboard error", err);
+        showToast('toastError', 'info');
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // BOOTSTRAP
+    // ══════════════════════════════════════════════════════════════════════════
+    window.onload = () => {
+      // Init language
+      setLang(detectLang());
+      updateOnlineStatus();
+
+      // Init maps
+      initMaps();
+      
+      // Check for Initial View requested from Home page
+      const initialView = sessionStorage.getItem('initialView');
+      if (initialView === 'dashboard') {
+        switchView('dashboard');
+        sessionStorage.removeItem('initialView');
+      }
+
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker Registered!', reg))
+          .catch(err => console.error('Service Worker Failed', err));
+      }
+    };
+  </script>
+</body>
+</html>

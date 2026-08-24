@@ -1,0 +1,18 @@
+# Environment
+.env
+backend/.env
+
+# Data
+backend/citizens.json
+backend/citizens.json.tmp
+
+# Node
+node_modules/
+package-lock.json
+
+# Scratch files
+backend/temp*.js
+backend/fix_server.js
+
+# Documents
+*.pdf
